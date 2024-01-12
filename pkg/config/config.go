@@ -546,6 +546,9 @@ type NetworkConfig struct {
 
 	// cniManager manages the internal ocicni plugin
 	cniManager *cnimgr.CNIManager
+
+	// disableCNI 
+	DisableCNI bool `toml:"disable_cni"`
 }
 
 // APIConfig represents the "crio.api" TOML config table.

@@ -21,6 +21,10 @@ import (
 // networkStart sets up the sandbox's network and returns the pod IP on success
 // or an error
 func (s *Server) networkStart(ctx context.Context, sb *sandbox.Sandbox) (podIPs []string, result cnitypes.Result, retErr error) {
+	if s.config.DisableCNI {
+		return nil, nil, nil 
+	}
+	
 	ctx, span := log.StartSpan(ctx)
 	defer span.End()
 	overallStart := time.Now()
@@ -162,6 +166,10 @@ func (s *Server) getSandboxIPs(ctx context.Context, sb *sandbox.Sandbox) ([]stri
 // networkStop cleans up and removes a pod's network.  It is best-effort and
 // must call the network plugin even if the network namespace is already gone
 func (s *Server) networkStop(ctx context.Context, sb *sandbox.Sandbox) error {
+	if s.config.DisableCNI {
+		return nil
+	}
+	
 	ctx, span := log.StartSpan(ctx)
 	defer span.End()
 	if sb.HostNetwork() || sb.NetworkStopped() {

@@ -63,11 +63,13 @@ func (s *Server) PodSandboxStatus(ctx context.Context, req *types.PodSandboxStat
 		Timestamp:          timestamp,
 	}
 
-	if len(sb.IPs()) > 0 {
-		resp.Status.Network.Ip = sb.IPs()[0]
-	}
-	if len(sb.IPs()) > 1 {
-		resp.Status.Network.AdditionalIps = toPodIPs(sb.IPs()[1:])
+	if !s.config.DisableCNI {
+		if len(sb.IPs()) > 0 {
+			resp.Status.Network.Ip = sb.IPs()[0]
+		}
+		if len(sb.IPs()) > 1 {
+			resp.Status.Network.AdditionalIps = toPodIPs(sb.IPs()[1:])
+		}
 	}
 
 	if req.Verbose {
@@ -76,6 +78,14 @@ func (s *Server) PodSandboxStatus(ctx context.Context, req *types.PodSandboxStat
 			return nil, fmt.Errorf("creating sandbox info: %w", err)
 		}
 		resp.Info = info
+	}
+	
+	if !sb.HostNetwork() {
+		if resp.Info == nil {
+			resp.Info = map[string]string{}
+		}
+
+		resp.Info["netns"] = sb.NetNsPath()
 	}
 
 	return resp, nil

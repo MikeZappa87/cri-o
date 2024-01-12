@@ -302,14 +302,16 @@ func (s *Server) restore(ctx context.Context) []storage.StorageImageID {
 		}
 	}()
 
-	// Restore sandbox IPs
-	for _, sb := range s.ListSandboxes() {
-		ips, err := s.getSandboxIPs(ctx, sb)
-		if err != nil {
-			log.Warnf(ctx, "Could not restore sandbox IP for %v: %v", sb.ID(), err)
-			continue
+	if !s.config.DisableCNI {
+		// Restore sandbox IPs
+		for _, sb := range s.ListSandboxes() {
+			ips, err := s.getSandboxIPs(ctx, sb)
+			if err != nil {
+				log.Warnf(ctx, "Could not restore sandbox IP for %v: %v", sb.ID(), err)
+				continue
+			}
+			sb.AddIPs(ips)
 		}
-		sb.AddIPs(ips)
 	}
 
 	// Return a slice of images to remove, if internal_wipe is set.
